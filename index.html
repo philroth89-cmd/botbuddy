@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="BotBuddy" />
+  <title>BotBuddy</title>
+  <style>
+    :root {
+      --eye-color: #00e5ff;
+      --eye-glow: rgba(0, 229, 255, 0.35);
+      --bg: #000000;
+      --panel: #121216;
+      --text: #f0f4f8;
+      --muted: #7a869a;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Rounded", sans-serif;
+      overflow: hidden;
+    }
+
+    #app {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 100%;
+      padding: env(safe-area-inset-top) 16px env(safe-area-inset-bottom) 16px;
+    }
+
+    /* Top Bar */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 8px;
+      z-index: 10;
+    }
+
+    .badge {
+      font-size: 12px;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.06);
+      padding: 6px 12px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #444;
+    }
+    .dot.active { background: #00e676; box-shadow: 0 0 8px #00e676; }
+    .dot.listening { background: #ff3d00; box-shadow: 0 0 8px #ff3d00; }
+
+    .icon-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: none;
+      color: var(--text);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .icon-btn.on {
+      background: rgba(0, 229, 255, 0.2);
+      color: var(--eye-color);
+      border: 1px solid var(--eye-color);
+    }
+
+    /* Face Area */
+    #face-stage {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .eyes-wrapper {
+      display: flex;
+      gap: 36px;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .eye {
+      width: 92px;
+      height: 112px;
+      background: var(--eye-color);
+      border-radius: 46px;
+      box-shadow: 0 0 28px var(--eye-glow);
+      position: relative;
+      overflow: hidden;
+      transition:
+        height 0.14s ease,
+        width 0.2s ease,
+        border-radius 0.25s ease,
+        background 0.3s ease,
+        box-shadow 0.3s ease,
+        transform 0.2s ease;
+    }
+
+    .pupil {
+      width: 28px;
+      height: 28px;
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 50%;
+      position: absolute;
+      top: 42px;
+      left: 32px;
+      transition: transform 0.2s ease-out;
+    }
+
+    /* Blinking */
+    .eye.blink {
+      height: 6px !important;
+      border-radius: 6px !important;
+    }
+
+    /* Emotion States */
+    .mood-HAPPY .eye {
+      height: 58px;
+      border-radius: 60px 60px 14px 14px;
+      background: #00e676;
+      box-shadow: 0 0 28px rgba(0, 230, 118, 0.4);
+    }
+    .mood-CURIOUS .eye:first-child {
+      height: 124px;
+      width: 98px;
+    }
+    .mood-CURIOUS .eye:last-child {
+      height: 92px;
+      width: 86px;
+    }
+    .mood-THINKING .eye {
+      height: 36px;
+      border-radius: 18px;
+      background: #ffab00;
+      box-shadow: 0 0 24px rgba(255, 171, 0, 0.35);
+    }
+    .mood-SARCASTIC .eye {
+      height: 44px;
+      border-radius: 8px 8px 40px 40px;
+      background: #d500f9;
+      box-shadow: 0 0 24px rgba(213, 0, 249, 0.35);
+    }
+    .mood-SURPRISED .eye {
+      width: 106px;
+      height: 128px;
+      border-radius: 50%;
+    }
+    .mood-SLEEPY .eye {
+      height: 18px;
+      border-radius: 12px;
+      opacity: 0.6;
+    }
+
+    /* Speaking bounce */
+    .speaking .eye {
+      animation: speakPulse 0.28s infinite alternate ease-in-out;
+    }
+    @keyframes speakPulse {
+      from { transform: scaleY(0.94) scaleX(1.03); }
+      to { transform: scaleY(1.06) scaleX(0.97); }
+    }
+
+    /* Subtitles */
+    #subtitle {
+      margin-top: 32px;
+      max-width: 90%;
+      text-align: center;
+      font-size: 16px;
+      line-height: 1.45;
+      color: #cfd8dc;
+      min-height: 48px;
+      padding: 0 12px;
+    }
+
+    /* Camera Preview PIP */
+    #cam-preview {
+      position: fixed;
+      top: calc(env(safe-area-inset-top) + 58px);
+      right: 16px;
+      width: 84px;
+      height: 112px;
+      border-radius: 14px;
+      object-fit: cover;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      display: none;
+      transform: scaleX(-1);
+      z-index: 9;
+    }
+
+    /* Controls */
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding-bottom: 10px;
+      z-index: 10;
+    }
+
+    .talk-btn {
+      width: 100%;
+      height: 58px;
+      border-radius: 29px;
+      border: none;
+      background: var(--eye-color);
+      color: #000;
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      box-shadow: 0 4px 20px var(--eye-glow);
+      cursor: pointer;
+      transition: transform 0.1s, background 0.2s;
+    }
+    .talk-btn:active { transform: scale(0.97); }
+    .talk-btn.listening {
+      background: #ff3d00;
+      color: #fff;
+      box-shadow: 0 4px 24px rgba(255, 61, 0, 0.5);
+    }
+
+    .text-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    #text-input {
+      flex: 1;
+      background: var(--panel);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 20px;
+      padding: 10px 16px;
+      color: var(--text);
+      font-size: 16px;
+      outline: none;
+      user-select: text;
+    }
+
+    #send-btn {
+      background: rgba(255, 255, 255, 0.12);
+      border: none;
+      color: var(--text);
+      border-radius: 20px;
+      padding: 0 18px;
+      font-weight: 600;
+      font-size: 15px;
+    }
+
+    /* Settings Modal */
+    #settings-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.92);
+      z-index: 50;
+      display: none;
+      flex-direction: column;
+      padding: calc(env(safe-area-inset-top) + 16px) 20px calc(env(safe-area-inset-bottom) + 20px) 20px;
+      overflow-y: auto;
+    }
+    #settings-modal.open { display: flex; }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    label {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    input[type="password"], textarea, select {
+      width: 100%;
+      background: var(--panel);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      padding: 12px;
+      color: var(--text);
+      font-size: 15px;
+      margin-bottom: 16px;
+      user-select: text;
+    }
+
+    textarea { height: 110px; resize: vertical; }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    .secondary-btn {
+      flex: 1;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: var(--panel);
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .primary-btn {
+      flex: 1;
+      padding: 12px;
+      border-radius: 12px;
+      border: none;
+      background: var(--eye-color);
+      color: #000;
+      font-size: 14px;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="top-bar">
+      <div class="badge">
+        <span class="dot" id="status-dot"></span>
+        <span id="status-text">Ready</span>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <button class="icon-btn" id="cam-toggle" title="Toggle Vision">📷</button>
+        <button class="icon-btn" id="settings-open" title="Settings">⚙️</button>
+      </div>
+    </div>
+
+    <video id="cam-preview" autoplay playsinline muted></video>
+    <canvas id="cam-canvas" width="320" height="240" style="display:none;"></canvas>
+
+    <div id="face-stage">
+      <div class="eyes-wrapper" id="eyes-wrapper">
+        <div class="eye" id="eye-left"><div class="pupil"></div></div>
+        <div class="eye" id="eye-right"><div class="pupil"></div></div>
+      </div>
+      <div id="subtitle">Tap "Talk" or pet my screen to wake me up.</div>
+    </div>
+
+    <div class="controls">
+      <button class="talk-btn" id="talk-btn">🎙️ Tap to Talk</button>
+      <div class="text-row">
+        <input type="text" id="text-input" placeholder="Or type a message..." />
+        <button id="send-btn">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings & Memory Modal -->
+  <div id="settings-modal">
+    <div class="modal-header">
+      <h2 style="margin:0; font-size:20px;">Companion Setup</h2>
+      <button class="icon-btn" id="settings-close">✕</button>
+    </div>
+
+    <label>Gemini API Key (from Google AI Studio)</label>
+    <input type="password" id="api-key-input" placeholder="AIzaSy..." />
+
+    <label>Model</label>
+    <select id="model-select">
+      <option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite (Fast & Light)</option>
+      <option value="gemini-3.8-flash">gemini-3.8-flash (Smarter)</option>
+    </select>
+
+    <label>Personality Prompt</label>
+    <textarea id="persona-input"></textarea>
+
+    <label>Saved Memory Summary (Auto-updates every 8 turns)</label>
+    <textarea id="memory-input" style="height:80px;" placeholder="No memories saved yet..."></textarea>
+
+    <div class="btn-row">
+      <button class="primary-btn" id="save-settings">Save Settings</button>
+    </div>
+    <div class="btn-row" style="margin-top:12px;">
+      <button class="secondary-btn" id="export-memory">Export Backup</button>
+      <button class="secondary-btn" id="clear-history" style="color:#ff5252;">Reset Memory</button>
+    </div>
+  </div>
+
+  <script>
+    // --- Default Configuration ---
+    const DEFAULT_PERSONA = `You are Spark, a witty, curious, slightly dramatic little desktop robot companion living on an iPhone screen.
+Rules:
+1. Always start your response with ONE mood tag from: [HAPPY], [CURIOUS], [THINKING], [SARCASTIC], [SURPRISED], [NEUTRAL].
+2. Keep spoken responses short (1 to 3 punchy sentences) with no markdown, asterisks, or emojis so text-to-speech sounds natural.
+3. If an image is attached, casually react to what you see on the user's desk or face.`;
+
+    const STORAGE_KEYS = {
+      API_KEY: "bot_api_key",
+      MODEL: "bot_model",
+      PERSONA: "bot_persona",
+      HISTORY: "bot_chat_history",
+      MEMORY: "bot_long_memory"
+    };
+
+    // --- DOM Elements ---
+    const eyesWrapper = document.getElementById("eyes-wrapper");
+    const eyes = document.querySelectorAll(".eye");
+    const pupils = document.querySelectorAll(".pupil");
+    const subtitle = document.getElementById("subtitle");
+    const talkBtn = document.getElementById("talk-btn");
+    const textInput = document.getElementById("text-input");
+    const sendBtn = document.getElementById("send-btn");
+    const camToggle = document.getElementById("cam-toggle");
+    const camPreview = document.getElementById("cam-preview");
+    const camCanvas = document.getElementById("cam-canvas");
+    const statusDot = document.getElementById("status-dot");
+    const statusText = document.getElementById("status-text");
+
+    let chatHistory = JSON.parse(localStorage.getItem(STORAGE_KEYS.HISTORY) || "[]");
+    let cameraStream = null;
+    let isListening = false;
+    let recognition = null;
+
+    // --- Initialize Settings ---
+    document.getElementById("api-key-input").value = localStorage.getItem(STORAGE_KEYS.API_KEY) || "";
+    document.getElementById("model-select").value = localStorage.getItem(STORAGE_KEYS.MODEL) || "gemini-3.5-flash-lite";
+    document.getElementById("persona-input").value = localStorage.getItem(STORAGE_KEYS.PERSONA) || DEFAULT_PERSONA;
+    document.getElementById("memory-input").value = localStorage.getItem(STORAGE_KEYS.MEMORY) || "";
+
+    if (!localStorage.getItem(STORAGE_KEYS.API_KEY)) {
+      document.getElementById("settings-modal").classList.add("open");
+    }
+
+    // --- Eye Animation & Expressions ---
+    function setMood(mood) {
+      eyesWrapper.className = "eyes-wrapper mood-" + mood;
+    }
+
+    function setStatus(label, state = "") {
+      statusText.textContent = label;
+      statusDot.className = "dot " + state;
+    }
+
+    // Random Blink Loop
+    setInterval(() => {
+      if (Math.random() < 0.7) {
+        eyes.forEach(e => e.classList.add("blink"));
+        setTimeout(() => eyes.forEach(e => e.classList.remove("blink")), 140);
+      }
+    }, 3600);
+
+    // Random Idle Pupil Drift
+    setInterval(() => {
+      if (!isListening) {
+        const x = (Math.random() - 0.5) * 16;
+        const y = (Math.random() - 0.5) * 12;
+        pupils.forEach(p => p.style.transform = `translate(${x}px, ${y}px)`);
+      }
+    }, 2400);
+
+    // Petting / Tapping the Face
+    document.getElementById("face-stage").addEventListener("click", (e) => {
+      const rect = eyesWrapper.getBoundingClientRect();
+      const offsetX = Math.max(-14, Math.min(14, (e.clientX - (rect.left + rect.width / 2)) / 8));
+      const offsetY = Math.max(-10, Math.min(10, (e.clientY - (rect.top + rect.height / 2)) / 8));
+      pupils.forEach(p => p.style.transform = `translate(${offsetX}px, ${offsetY}px)`);
+      setMood("HAPPY");
+      setTimeout(() => setMood("NEUTRAL"), 1500);
+    });
+
+    // --- Camera Vision Toggle ---
+    camToggle.addEventListener("click", async () => {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(t => t.stop());
+        cameraStream = null;
+        camPreview.style.display = "none";
+        camToggle.classList.remove("on");
+        setStatus("Vision Off");
+        return;
+      }
+      try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "user", width: 320, height: 240 },
+          audio: false
+        });
+        camPreview.srcObject = cameraStream;
+        camPreview.style.display = "block";
+        camToggle.classList.add("on");
+        setStatus("Vision Active", "active");
+      } catch (err) {
+        alert("Camera access blocked. Ensure you are using HTTPS.");
+      }
+    });
+
+    function captureSnapshotBase64() {
+      if (!cameraStream) return null;
+      const ctx = camCanvas.getContext("2d");
+      ctx.drawImage(camPreview, 0, 0, camCanvas.width, camCanvas.height);
+      const dataUrl = camCanvas.toDataURL("image/jpeg", 0.65);
+      return dataUrl.split(",")[1];
+    }
+
+    // --- Speech Recognition (iPhone Safari) ---
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      recognition = new SpeechRecognition();
+      recognition.lang = "en-US";
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      recognition.onstart = () => {
+        isListening = true;
+        talkBtn.classList.add("listening");
+        talkBtn.textContent = "Listening...";
+        setMood("CURIOUS");
+        setStatus("Listening", "listening");
+      };
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        subtitle.textContent = `"${transcript}"`;
+        sendMessageToGemini(transcript);
+      };
+
+      recognition.onerror = (event) => {
+        subtitle.textContent = "Mic error: " + event.error;
+        resetListenUI();
+      };
+
+      recognition.onend = () => {
+        resetListenUI();
+      };
+    }
+
+    function resetListenUI() {
+      isListening = false;
+      talkBtn.classList.remove("listening");
+      talkBtn.textContent = "🎙️ Tap to Talk";
+      setStatus(cameraStream ? "Vision Active" : "Ready", cameraStream ? "active" : "");
+    }
+
+    talkBtn.addEventListener("click", () => {
+      // Unlock iOS speechSynthesis on user gesture
+      window.speechSynthesis.cancel();
+      if (!recognition) {
+        subtitle.textContent = "Voice recognition unavailable—use text box below.";
+        return;
+      }
+      if (isListening) {
+        recognition.stop();
+      } else {
+        recognition.start();
+      }
+    });
+
+    sendBtn.addEventListener("click", () => {
+      const val = textInput.value.trim();
+      if (!val) return;
+      textInput.value = "";
+      sendMessageToGemini(val);
+    });
+
+    textInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") sendBtn.click();
+    });
+
+    // --- Text-to-Speech ---
+    function speak(text) {
+      if (!("speechSynthesis" in window)) return;
+      window.speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.rate = 1.06;
+      utter.pitch = 1.12;
+      utter.onstart = () => eyesWrapper.classList.add("speaking");
+      utter.onend = () => eyesWrapper.classList.remove("speaking");
+      window.speechSynthesis.speak(utter);
+    }
+
+    // --- Gemini API & Memory ---
+    async function sendMessageToGemini(userText) {
+      const apiKey = localStorage.getItem(STORAGE_KEYS.API_KEY);
+      if (!apiKey) {
+        document.getElementById("settings-modal").classList.add("open");
+        return;
+      }
+
+      const model = localStorage.getItem(STORAGE_KEYS.MODEL) || "gemini-3.5-flash-lite";
+      const persona = localStorage.getItem(STORAGE_KEYS.PERSONA) || DEFAULT_PERSONA;
+      const longMemory = localStorage.getItem(STORAGE_KEYS.MEMORY) || "";
+
+      setMood("THINKING");
+      setStatus("Thinking...", "active");
+
+      const parts = [{ text: userText }];
+      const imgBase64 = captureSnapshotBase64();
+      if (imgBase64) {
+        parts.unshift({
+          inlineData: { mimeType: "image/jpeg", data: imgBase64 }
+        });
+      }
+
+      // Keep last 12 turns in active context
+      const recentHistory = chatHistory.slice(-12);
+      const contents = [
+        ...recentHistory,
+        { role: "user", parts }
+      ];
+
+      const systemText = longMemory
+        ? `${persona}\n\nWhat you remember about the user:\n${longMemory}`
+        : persona;
+
+      try {
+        const res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              systemInstruction: { parts: [{ text: systemText }] },
+              contents
+            })
+          }
+        );
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error?.message || "API Error");
+
+        const rawReply = data.candidates?.[0]?.content?.parts?.[0]?.text || "[NEUTRAL] Beep boop?";
+        const moodMatch = rawReply.match(/^\[(HAPPY|CURIOUS|THINKING|SARCASTIC|SURPRISED|NEUTRAL)\]\s*/i);
+        const mood = moodMatch ? moodMatch[1].toUpperCase() : "NEUTRAL";
+        const cleanReply = rawReply.replace(/^\[[A-Z]+\]\s*/i, "").trim();
+
+        setMood(mood);
+        subtitle.textContent = cleanReply;
+        speak(cleanReply);
+
+        // Save text-only history to localStorage (avoids filling storage with base64 images)
+        chatHistory.push({ role: "user", parts: [{ text: userText }] });
+        chatHistory.push({ role: "model", parts: [{ text: rawReply }] });
+        if (chatHistory.length > 30) chatHistory = chatHistory.slice(-30);
+        localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(chatHistory));
+
+        setStatus(cameraStream ? "Vision Active" : "Ready", cameraStream ? "active" : "");
+
+        // Periodically compress memories every 8 messages
+        if (chatHistory.length % 8 === 0) {
+          updateLongTermMemory(apiKey, model);
+        }
+      } catch (err) {
+        setMood("SURPRISED");
+        subtitle.textContent = "Error: " + err.message;
+        setStatus("Error");
+      }
+    }
+
+    async function updateLongTermMemory(apiKey, model) {
+      const existing = localStorage.getItem(STORAGE_KEYS.MEMORY) || "None";
+      const transcript = chatHistory.slice(-8).map(m => `${m.role}: ${m.parts[0].text}`).join("\n");
+      const prompt = `Update this concise bulleted user memory profile (max 6 bullets) using the recent chat.\nExisting memory:\n${existing}\n\nRecent chat:\n${transcript}`;
+
+      try {
+        const res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: prompt }] }] })
+          }
+        );
+        const data = await res.json();
+        const summary = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (summary) {
+          localStorage.setItem(STORAGE_KEYS.MEMORY, summary.trim());
+          document.getElementById("memory-input").value = summary.trim();
+        }
+      } catch (_) {}
+    }
+
+    // --- Modal & Backup Controls ---
+    document.getElementById("settings-open").addEventListener("click", () => {
+      document.getElementById("settings-modal").classList.add("open");
+    });
+    document.getElementById("settings-close").addEventListener("click", () => {
+      document.getElementById("settings-modal").classList.remove("open");
+    });
+    document.getElementById("save-settings").addEventListener("click", () => {
+      localStorage.setItem(STORAGE_KEYS.API_KEY, document.getElementById("api-key-input").value.trim());
+      localStorage.setItem(STORAGE_KEYS.MODEL, document.getElementById("model-select").value);
+      localStorage.setItem(STORAGE_KEYS.PERSONA, document.getElementById("persona-input").value.trim());
+      localStorage.setItem(STORAGE_KEYS.MEMORY, document.getElementById("memory-input").value.trim());
+      document.getElementById("settings-modal").classList.remove("open");
+      setMood("HAPPY");
+      subtitle.textContent = "Settings saved!";
+    });
+    document.getElementById("clear-history").addEventListener("click", () => {
+      if (confirm("Clear all conversation history and saved memories?")) {
+        chatHistory = [];
+        localStorage.removeItem(STORAGE_KEYS.HISTORY);
+        localStorage.removeItem(STORAGE_KEYS.MEMORY);
+        document.getElementById("memory-input").value = "";
+        subtitle.textContent = "Memory wiped clean.";
+      }
+    });
+    document.getElementById("export-memory").addEventListener("click", () => {
+      const backup = JSON.stringify({
+        persona: localStorage.getItem(STORAGE_KEYS.PERSONA),
+        memory: localStorage.getItem(STORAGE_KEYS.MEMORY),
+        history: chatHistory
+      }, null, 2);
+      navigator.clipboard?.writeText(backup);
+      alert("Memory backup JSON copied to clipboard!");
+    });
+  </script>
+</body>
+</html>
