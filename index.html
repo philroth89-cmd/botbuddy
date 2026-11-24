@@ -459,9 +459,9 @@
 
     <label>Model</label>
     <select id="model-select">
-      <option value="gemini-2.5-flash">gemini-2.5-flash (Recommended)</option>
-      <option value="gemini-2.5-flash-lite">gemini-2.5-flash-lite (Fastest)</option>
-      <option value="gemini-2.5-pro">gemini-2.5-pro (Smartest)</option>
+      <option value="gemini-3.8-flash">gemini-3.8-flash (Recommended)</option>
+      <option value="gemini-3.8-flash-lite">gemini-3.8-flash-lite (Fastest)</option>
+      <option value="gemini-3.8-pro">gemini-3.8-pro (Smartest)</option>
     </select>
 
     <label>Robot Voice</label>
@@ -508,7 +508,7 @@ Rules:
       WEBHOOK: "pip_webhook"
     };
 
-    const VALID_MODELS = ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-2.5-pro"];
+    const VALID_MODELS = ["gemini-3.8-flash", "gemini-3.8-flash-lite", "gemini-3.8-pro"];
 
     const MOOD_COLORS = {
       NEUTRAL: "#00e5ff",
@@ -554,10 +554,10 @@ Rules:
     let countdownInterval = null;
     let idleTimer = null;
 
-    // Auto-migrate any outdated saved model name to gemini-2.5-flash
+    // Auto-migrate any deprecated saved model name to gemini-3.8-flash
     let savedModel = localStorage.getItem(STORAGE_KEYS.MODEL);
     if (!VALID_MODELS.includes(savedModel)) {
-      savedModel = "gemini-2.5-flash";
+      savedModel = "gemini-3.8-flash";
       localStorage.setItem(STORAGE_KEYS.MODEL, savedModel);
     }
 
@@ -1021,8 +1021,8 @@ Rules:
         return;
       }
 
-      let model = localStorage.getItem(STORAGE_KEYS.MODEL) || "gemini-2.5-flash";
-      if (!VALID_MODELS.includes(model)) model = "gemini-2.5-flash";
+      let model = localStorage.getItem(STORAGE_KEYS.MODEL) || "gemini-3.8-flash";
+      if (!VALID_MODELS.includes(model)) model = "gemini-3.8-flash";
 
       const persona = localStorage.getItem(STORAGE_KEYS.PERSONA) || DEFAULT_PERSONA;
       const longMemory = localStorage.getItem(STORAGE_KEYS.MEMORY) || "";
