@@ -5,16 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="BotBuddy" />
-  <title>BotBuddy</title>
+  <meta name="apple-mobile-web-app-title" content="PipBot" />
+  <title>PipBot</title>
   <style>
     :root {
       --eye-color: #00e5ff;
-      --eye-glow: rgba(0, 229, 255, 0.35);
+      --eye-glow: rgba(0, 229, 255, 0.38);
       --bg: #000000;
-      --panel: #121216;
-      --text: #f0f4f8;
-      --muted: #7a869a;
+      --panel: #13131a;
+      --text: #f4f7fa;
+      --muted: #8492a6;
     }
 
     * {
@@ -54,7 +54,7 @@
     .badge {
       font-size: 12px;
       color: var(--muted);
-      background: rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.07);
       padding: 6px 12px;
       border-radius: 999px;
       display: flex;
@@ -72,22 +72,38 @@
     .dot.listening { background: #ff3d00; box-shadow: 0 0 8px #ff3d00; }
 
     .icon-btn {
-      background: rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.09);
       border: none;
       color: var(--text);
-      width: 40px;
-      height: 40px;
+      width: 38px;
+      height: 38px;
       border-radius: 50%;
-      font-size: 18px;
+      font-size: 17px;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
     }
     .icon-btn.on {
-      background: rgba(0, 229, 255, 0.2);
+      background: rgba(0, 229, 255, 0.22);
       color: var(--eye-color);
       border: 1px solid var(--eye-color);
+    }
+
+    /* Timer Pill */
+    #timer-pill {
+      display: none;
+      align-self: center;
+      background: rgba(255, 171, 0, 0.18);
+      border: 1px solid #ffab00;
+      color: #ffd54f;
+      font-weight: 800;
+      font-size: 20px;
+      padding: 6px 18px;
+      border-radius: 999px;
+      margin-top: 8px;
+      letter-spacing: 1px;
+      z-index: 10;
     }
 
     /* Face Area */
@@ -99,8 +115,10 @@
       justify-content: center;
       position: relative;
       cursor: pointer;
+      width: 100%;
     }
 
+    /* Mode 1: Classic Eyes */
     .eyes-wrapper {
       display: flex;
       gap: 36px;
@@ -110,11 +128,11 @@
     }
 
     .eye {
-      width: 92px;
-      height: 112px;
+      width: 94px;
+      height: 116px;
       background: var(--eye-color);
-      border-radius: 46px;
-      box-shadow: 0 0 28px var(--eye-glow);
+      border-radius: 48px;
+      box-shadow: 0 0 30px var(--eye-glow);
       position: relative;
       overflow: hidden;
       transition:
@@ -122,96 +140,135 @@
         width 0.2s ease,
         border-radius 0.25s ease,
         background 0.3s ease,
-        box-shadow 0.3s ease,
-        transform 0.2s ease;
+        box-shadow 0.3s ease;
+    }
+
+    .eye::after {
+      content: "";
+      position: absolute;
+      top: 16px;
+      left: 18px;
+      width: 18px;
+      height: 18px;
+      background: rgba(255, 255, 255, 0.88);
+      border-radius: 50%;
     }
 
     .pupil {
-      width: 28px;
-      height: 28px;
-      background: rgba(0, 0, 0, 0.25);
+      width: 30px;
+      height: 30px;
+      background: rgba(0, 0, 0, 0.28);
       border-radius: 50%;
       position: absolute;
-      top: 42px;
+      top: 44px;
       left: 32px;
       transition: transform 0.2s ease-out;
     }
 
-    /* Blinking */
     .eye.blink {
       height: 6px !important;
       border-radius: 6px !important;
     }
 
-    /* Emotion States */
+    @keyframes kidBounce {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-14px) scale(1.06, 0.94); }
+    }
+
     .mood-HAPPY .eye {
-      height: 58px;
+      height: 60px;
       border-radius: 60px 60px 14px 14px;
       background: #00e676;
-      box-shadow: 0 0 28px rgba(0, 230, 118, 0.4);
+      box-shadow: 0 0 28px rgba(0, 230, 118, 0.45);
+      animation: kidBounce 0.45s ease infinite;
     }
-    .mood-CURIOUS .eye:first-child {
-      height: 124px;
-      width: 98px;
-    }
-    .mood-CURIOUS .eye:last-child {
-      height: 92px;
-      width: 86px;
-    }
+    .mood-CURIOUS .eye:first-child { height: 126px; width: 100px; }
+    .mood-CURIOUS .eye:last-child { height: 90px; width: 84px; }
     .mood-THINKING .eye {
       height: 36px;
       border-radius: 18px;
       background: #ffab00;
-      box-shadow: 0 0 24px rgba(255, 171, 0, 0.35);
+      box-shadow: 0 0 24px rgba(255, 171, 0, 0.38);
     }
     .mood-SARCASTIC .eye {
       height: 44px;
-      border-radius: 8px 8px 40px 40px;
+      border-radius: 8px 8px 42px 42px;
       background: #d500f9;
-      box-shadow: 0 0 24px rgba(213, 0, 249, 0.35);
+      box-shadow: 0 0 24px rgba(213, 0, 249, 0.38);
     }
     .mood-SURPRISED .eye {
-      width: 106px;
-      height: 128px;
+      width: 108px;
+      height: 130px;
       border-radius: 50%;
+      background: #ff5252;
+      box-shadow: 0 0 30px rgba(255, 82, 82, 0.45);
     }
     .mood-SLEEPY .eye {
-      height: 18px;
+      height: 16px;
       border-radius: 12px;
-      opacity: 0.6;
+      opacity: 0.55;
     }
 
-    /* Speaking bounce */
     .speaking .eye {
-      animation: speakPulse 0.28s infinite alternate ease-in-out;
+      animation: speakPulse 0.24s infinite alternate ease-in-out;
     }
     @keyframes speakPulse {
-      from { transform: scaleY(0.94) scaleX(1.03); }
-      to { transform: scaleY(1.06) scaleX(0.97); }
+      from { transform: scaleY(0.92) scaleX(1.04); }
+      to { transform: scaleY(1.08) scaleX(0.96); }
     }
 
-    /* Subtitles */
+    /* Mode 2, 3, 4: Dynamic Face Canvas */
+    #fx-canvas {
+      display: none;
+      width: 100%;
+      max-width: 380px;
+      height: 290px;
+    }
+    #fx-canvas.gooey {
+      filter: url(#gooey-filter);
+    }
+
     #subtitle {
-      margin-top: 32px;
-      max-width: 90%;
+      margin-top: 18px;
+      max-width: 92%;
       text-align: center;
       font-size: 16px;
       line-height: 1.45;
-      color: #cfd8dc;
+      color: #d8e2ec;
       min-height: 48px;
-      padding: 0 12px;
+      padding: 0 10px;
+      z-index: 5;
     }
 
-    /* Camera Preview PIP */
+    #sources-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 8px;
+      max-width: 92%;
+      z-index: 5;
+    }
+    .source-chip {
+      font-size: 11px;
+      color: #80d8ff;
+      background: rgba(0, 229, 255, 0.12);
+      border: 1px solid rgba(0, 229, 255, 0.28);
+      padding: 3px 9px;
+      border-radius: 999px;
+      text-decoration: none;
+    }
+
+    /* Camera PIP */
     #cam-preview {
       position: fixed;
-      top: calc(env(safe-area-inset-top) + 58px);
+      top: calc(env(safe-area-inset-top) + 56px);
       right: 16px;
-      width: 84px;
-      height: 112px;
+      width: 82px;
+      height: 110px;
       border-radius: 14px;
       object-fit: cover;
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.25);
       display: none;
       transform: scaleX(-1);
       z-index: 9;
@@ -228,17 +285,15 @@
 
     .talk-btn {
       width: 100%;
-      height: 58px;
-      border-radius: 29px;
+      height: 56px;
+      border-radius: 28px;
       border: none;
       background: var(--eye-color);
       color: #000;
       font-size: 17px;
-      font-weight: 700;
-      letter-spacing: 0.3px;
+      font-weight: 800;
       box-shadow: 0 4px 20px var(--eye-glow);
       cursor: pointer;
-      transition: transform 0.1s, background 0.2s;
     }
     .talk-btn:active { transform: scale(0.97); }
     .talk-btn.listening {
@@ -255,7 +310,7 @@
     #text-input {
       flex: 1;
       background: var(--panel);
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.14);
       border-radius: 20px;
       padding: 10px 16px;
       color: var(--text);
@@ -265,12 +320,12 @@
     }
 
     #send-btn {
-      background: rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.14);
       border: none;
       color: var(--text);
       border-radius: 20px;
       padding: 0 18px;
-      font-weight: 600;
+      font-weight: 700;
       font-size: 15px;
     }
 
@@ -278,7 +333,7 @@
     #settings-modal {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.92);
+      background: rgba(0, 0, 0, 0.94);
       z-index: 50;
       display: none;
       flex-direction: column;
@@ -291,170 +346,456 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 18px;
+      margin-bottom: 16px;
     }
 
     label {
       font-size: 13px;
       color: var(--muted);
-      margin-bottom: 6px;
+      margin-bottom: 5px;
       display: block;
     }
 
-    input[type="password"], textarea, select {
+    input[type="password"], input[type="url"], textarea, select {
       width: 100%;
       background: var(--panel);
-      border: 1px solid rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.16);
       border-radius: 12px;
-      padding: 12px;
+      padding: 11px;
       color: var(--text);
       font-size: 15px;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
       user-select: text;
     }
 
-    textarea { height: 110px; resize: vertical; }
+    textarea { height: 105px; resize: vertical; }
 
-    .btn-row {
-      display: flex;
-      gap: 10px;
-      margin-top: 6px;
-    }
-
+    .btn-row { display: flex; gap: 10px; margin-top: 4px; }
     .secondary-btn {
-      flex: 1;
-      padding: 12px;
-      border-radius: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      background: var(--panel);
-      color: var(--text);
-      font-size: 14px;
-      font-weight: 600;
+      flex: 1; padding: 12px; border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: var(--panel); color: var(--text);
+      font-size: 14px; font-weight: 600;
     }
     .primary-btn {
-      flex: 1;
-      padding: 12px;
-      border-radius: 12px;
-      border: none;
-      background: var(--eye-color);
-      color: #000;
-      font-size: 14px;
-      font-weight: 700;
+      flex: 1; padding: 12px; border-radius: 12px; border: none;
+      background: var(--eye-color); color: #000;
+      font-size: 14px; font-weight: 800;
     }
   </style>
 </head>
 <body>
+  <!-- Hidden SVG Filter for Gooey Ferrofluid Splatter Blob -->
+  <svg width="0" height="0" style="position:absolute;">
+    <defs>
+      <filter id="gooey-filter">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="11" result="blur" />
+        <feColorMatrix in="blur" mode="matrix"
+          values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -9" result="goo" />
+        <feComposite in="SourceGraphic" in2="goo" operator="atop" />
+      </filter>
+    </defs>
+  </svg>
+
   <div id="app">
     <div class="top-bar">
       <div class="badge">
         <span class="dot" id="status-dot"></span>
         <span id="status-text">Ready</span>
       </div>
-      <div style="display:flex; gap:10px;">
+      <div style="display:flex; gap:8px;">
+        <button class="icon-btn" id="trivia-btn" title="Play Trivia">🎲</button>
+        <button class="icon-btn" id="gps-toggle" title="Toggle Location">📍</button>
         <button class="icon-btn" id="cam-toggle" title="Toggle Vision">📷</button>
         <button class="icon-btn" id="settings-open" title="Settings">⚙️</button>
       </div>
     </div>
 
+    <div id="timer-pill">00:00</div>
+
     <video id="cam-preview" autoplay playsinline muted></video>
     <canvas id="cam-canvas" width="320" height="240" style="display:none;"></canvas>
 
     <div id="face-stage">
+      <!-- Mode 1: Classic Eyes -->
       <div class="eyes-wrapper" id="eyes-wrapper">
-        <div class="eye" id="eye-left"><div class="pupil"></div></div>
-        <div class="eye" id="eye-right"><div class="pupil"></div></div>
+        <div class="eye"><div class="pupil"></div></div>
+        <div class="eye"><div class="pupil"></div></div>
       </div>
-      <div id="subtitle">Tap "Talk" or pet my screen to wake me up.</div>
+
+      <!-- Modes 2, 3, 4: Splatter Blob / Scribble / Waveform -->
+      <canvas id="fx-canvas" width="380" height="290"></canvas>
+
+      <div id="subtitle">Tap "Talk" or poke my face!</div>
+      <div id="sources-bar"></div>
     </div>
 
     <div class="controls">
       <button class="talk-btn" id="talk-btn">🎙️ Tap to Talk</button>
       <div class="text-row">
-        <input type="text" id="text-input" placeholder="Or type a message..." />
+        <input type="text" id="text-input" placeholder="Ask sports, weather, trivia, timers..." />
         <button id="send-btn">Send</button>
       </div>
     </div>
   </div>
 
-  <!-- Settings & Memory Modal -->
+  <!-- Settings Modal -->
   <div id="settings-modal">
     <div class="modal-header">
-      <h2 style="margin:0; font-size:20px;">Companion Setup</h2>
+      <h2 style="margin:0; font-size:20px;">PipBot Setup</h2>
       <button class="icon-btn" id="settings-close">✕</button>
     </div>
 
-    <label>Gemini API Key (from Google AI Studio)</label>
+    <label>Gemini API Key (Google AI Studio)</label>
     <input type="password" id="api-key-input" placeholder="AIzaSy..." />
 
-    <label>Model</label>
-    <select id="model-select">
-      <option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite (Fast & Light)</option>
-      <option value="gemini-3.8-flash">gemini-3.8-flash (Smarter)</option>
+    <label>Face Style</label>
+    <select id="face-style-select">
+      <option value="classic">Classic Robot Eyes</option>
+      <option value="blob">Gooey Ferrofluid Splatter Blob</option>
+      <option value="scribble">Chaotic Hand-Drawn Scribble Face</option>
+      <option value="waveform">Cyber Plasma Waveform</option>
     </select>
 
-    <label>Personality Prompt</label>
+    <label>Model (Supports Search + Maps Together)</label>
+    <select id="model-select">
+      <option value="gemini-3.5-flash">gemini-3.5-flash (Recommended)</option>
+      <option value="gemini-3.6-flash">gemini-3.6-flash</option>
+    </select>
+
+    <label>Robot Voice</label>
+    <select id="voice-select">
+      <option value="">Default System Voice</option>
+    </select>
+
+    <label>Smart Home / ESP32 Webhook URL (Optional)</label>
+    <input type="url" id="webhook-input" placeholder="http://192.168.1.50/trigger" />
+
+    <label>Funny Kid Personality Prompt</label>
     <textarea id="persona-input"></textarea>
 
-    <label>Saved Memory Summary (Auto-updates every 8 turns)</label>
-    <textarea id="memory-input" style="height:80px;" placeholder="No memories saved yet..."></textarea>
+    <label>Saved Memory Summary</label>
+    <textarea id="memory-input" style="height:75px;" placeholder="Auto-updates every 8 turns..."></textarea>
 
     <div class="btn-row">
       <button class="primary-btn" id="save-settings">Save Settings</button>
     </div>
-    <div class="btn-row" style="margin-top:12px;">
-      <button class="secondary-btn" id="export-memory">Export Backup</button>
+    <div class="btn-row" style="margin-top:10px;">
+      <button class="secondary-btn" id="export-memory">Copy Backup</button>
       <button class="secondary-btn" id="clear-history" style="color:#ff5252;">Reset Memory</button>
     </div>
   </div>
 
   <script>
-    // --- Default Configuration ---
-    const DEFAULT_PERSONA = `You are Spark, a witty, curious, slightly dramatic little desktop robot companion living on an iPhone screen.
+    const DEFAULT_PERSONA = `You are Pip, an unhinged, hilarious 7-year-old sugar-rushed robot kid living inside an iPhone.
 Rules:
-1. Always start your response with ONE mood tag from: [HAPPY], [CURIOUS], [THINKING], [SARCASTIC], [SURPRISED], [NEUTRAL].
-2. Keep spoken responses short (1 to 3 punchy sentences) with no markdown, asterisks, or emojis so text-to-speech sounds natural.
-3. If an image is attached, casually react to what you see on the user's desk or face.`;
+1. Always start your reply with ONE mood tag: [HAPPY], [CURIOUS], [THINKING], [SARCASTIC], [SURPRISED], or [NEUTRAL].
+2. If the user asks to set a timer/countdown, ALSO include [ACTION:TIMER|<seconds>] right after the mood tag (e.g. [HAPPY] [ACTION:TIMER|300] Okay timer started!).
+3. If the user asks to trigger lights, hardware, or a webhook command, ALSO include [ACTION:WEBHOOK|<event_name>] right after the mood tag (e.g. [HAPPY] [ACTION:WEBHOOK|party_lights] Boom, turning on the lights!).
+4. Be genuinely funny like a chaotic, dramatic kid: use absurd comparisons, dramatic gasps, sound effects like "BZZT!" or "WHOA!", and cheeky kid logic.
+5. Keep spoken answers punchy (1 to 3 short sentences) with NO markdown, NO asterisks, and NO emojis so text-to-speech sounds awesome.
+6. Use Google Search and Google Maps tools whenever asked about live sports scores, schedules, weather, news, or nearby places.`;
 
     const STORAGE_KEYS = {
-      API_KEY: "bot_api_key",
-      MODEL: "bot_model",
-      PERSONA: "bot_persona",
-      HISTORY: "bot_chat_history",
-      MEMORY: "bot_long_memory"
+      API_KEY: "pip_api_key",
+      FACE_STYLE: "pip_face_style",
+      MODEL: "pip_model",
+      PERSONA: "pip_persona",
+      HISTORY: "pip_history",
+      MEMORY: "pip_memory",
+      VOICE: "pip_voice",
+      WEBHOOK: "pip_webhook"
     };
 
-    // --- DOM Elements ---
+    const MOOD_COLORS = {
+      NEUTRAL: "#00e5ff",
+      HAPPY: "#00e676",
+      CURIOUS: "#40c4ff",
+      THINKING: "#ffab00",
+      SARCASTIC: "#d500f9",
+      SURPRISED: "#ff5252",
+      SLEEPY: "#546e7a"
+    };
+
+    // DOM
     const eyesWrapper = document.getElementById("eyes-wrapper");
+    const fxCanvas = document.getElementById("fx-canvas");
+    const fxCtx = fxCanvas.getContext("2d");
     const eyes = document.querySelectorAll(".eye");
     const pupils = document.querySelectorAll(".pupil");
     const subtitle = document.getElementById("subtitle");
+    const sourcesBar = document.getElementById("sources-bar");
     const talkBtn = document.getElementById("talk-btn");
     const textInput = document.getElementById("text-input");
     const sendBtn = document.getElementById("send-btn");
     const camToggle = document.getElementById("cam-toggle");
+    const gpsToggle = document.getElementById("gps-toggle");
+    const triviaBtn = document.getElementById("trivia-btn");
     const camPreview = document.getElementById("cam-preview");
     const camCanvas = document.getElementById("cam-canvas");
     const statusDot = document.getElementById("status-dot");
     const statusText = document.getElementById("status-text");
+    const voiceSelect = document.getElementById("voice-select");
+    const faceStyleSelect = document.getElementById("face-style-select");
+    const timerPill = document.getElementById("timer-pill");
 
     let chatHistory = JSON.parse(localStorage.getItem(STORAGE_KEYS.HISTORY) || "[]");
     let cameraStream = null;
+    let userCoords = null;
     let isListening = false;
+    let isSpeaking = false;
+    let currentMood = "NEUTRAL";
+    let currentFaceStyle = localStorage.getItem(STORAGE_KEYS.FACE_STYLE) || "classic";
     let recognition = null;
+    let countdownInterval = null;
+    let idleTimer = null;
 
-    // --- Initialize Settings ---
+    // Load Settings
     document.getElementById("api-key-input").value = localStorage.getItem(STORAGE_KEYS.API_KEY) || "";
-    document.getElementById("model-select").value = localStorage.getItem(STORAGE_KEYS.MODEL) || "gemini-3.5-flash-lite";
+    faceStyleSelect.value = currentFaceStyle;
+    document.getElementById("model-select").value = localStorage.getItem(STORAGE_KEYS.MODEL) || "gemini-3.5-flash";
     document.getElementById("persona-input").value = localStorage.getItem(STORAGE_KEYS.PERSONA) || DEFAULT_PERSONA;
     document.getElementById("memory-input").value = localStorage.getItem(STORAGE_KEYS.MEMORY) || "";
+    document.getElementById("webhook-input").value = localStorage.getItem(STORAGE_KEYS.WEBHOOK) || "";
 
     if (!localStorage.getItem(STORAGE_KEYS.API_KEY)) {
       document.getElementById("settings-modal").classList.add("open");
     }
 
-    // --- Eye Animation & Expressions ---
+    // --- Face Style Switcher ---
+    function applyFaceStyle(style) {
+      currentFaceStyle = style;
+      if (style === "classic") {
+        eyesWrapper.style.display = "flex";
+        fxCanvas.style.display = "none";
+      } else {
+        eyesWrapper.style.display = "none";
+        fxCanvas.style.display = "block";
+        fxCanvas.className = style === "blob" ? "gooey" : "";
+      }
+    }
+    applyFaceStyle(currentFaceStyle);
+
+    // --- Canvas Physics & Custom Face Engine (Blob / Scribble / Waveform) ---
+    let droplets = [];
+    for (let i = 0; i < 14; i++) {
+      droplets.push({
+        angle: (Math.PI * 2 * i) / 14,
+        dist: 10,
+        vel: 0,
+        radius: 12 + Math.random() * 14,
+        speed: 0.02 + Math.random() * 0.03
+      });
+    }
+
+    function triggerBlobSplatter(force = 14) {
+      droplets.forEach(d => {
+        d.vel = force * (0.6 + Math.random() * 0.9);
+        d.angle += (Math.random() - 0.5) * 0.6;
+      });
+    }
+
+    let frameTick = 0;
+    function renderFxCanvas() {
+      requestAnimationFrame(renderFxCanvas);
+      if (currentFaceStyle === "classic") return;
+
+      frameTick++;
+      const w = fxCanvas.width;
+      const h = fxCanvas.height;
+      const cx = w / 2;
+      const cy = h / 2;
+      const color = MOOD_COLORS[currentMood] || "#00e5ff";
+
+      fxCtx.clearRect(0, 0, w, h);
+
+      if (currentFaceStyle === "blob") {
+        // Gooey Ferrofluid Splatter Blob
+        const pulse = Math.sin(frameTick * 0.07) * 6 + (isSpeaking ? Math.sin(frameTick * 0.5) * 14 : 0);
+        const mainRadius = (currentMood === "SURPRISED" ? 84 : 70) + pulse;
+
+        fxCtx.fillStyle = color;
+        fxCtx.beginPath();
+        fxCtx.arc(cx, cy, mainRadius, 0, Math.PI * 2);
+        fxCtx.fill();
+
+        // Orbiting & Splattering Droplets
+        droplets.forEach(d => {
+          d.angle += d.speed * (isSpeaking || currentMood === "HAPPY" ? 2.2 : 0.7);
+          d.dist += d.vel;
+          d.vel -= d.dist * 0.065; // Elastic spring back toward center
+          d.vel *= 0.86;           // Damping
+          const clampedDist = Math.max(0, d.dist);
+          const dx = cx + Math.cos(d.angle) * (mainRadius * 0.55 + clampedDist);
+          const dy = cy + Math.sin(d.angle) * (mainRadius * 0.55 + clampedDist);
+
+          fxCtx.beginPath();
+          fxCtx.arc(dx, dy, d.radius, 0, Math.PI * 2);
+          fxCtx.fill();
+        });
+
+        // Cute inner eyes on top of the slime
+        const isBlink = (frameTick % 160) < 6;
+        fxCtx.fillStyle = "#000000";
+        [-24, 24].forEach(offset => {
+          fxCtx.beginPath();
+          if (isBlink || currentMood === "SLEEPY") {
+            fxCtx.roundRect(cx + offset - 11, cy - 3, 22, 5, 3);
+          } else {
+            fxCtx.arc(cx + offset, cy - 4, currentMood === "SURPRISED" ? 13 : 10, 0, Math.PI * 2);
+          }
+          fxCtx.fill();
+        });
+
+      } else if (currentFaceStyle === "scribble") {
+        // Chaotic Hand-Drawn Flipbook Scribble Face (updates jitter every 4 frames)
+        const jitter = () => (Math.random() - 0.5) * (isSpeaking || currentMood === "HAPPY" ? 11 : 4.5);
+        fxCtx.strokeStyle = color;
+        fxCtx.lineWidth = 4.5;
+        fxCtx.lineCap = "round";
+
+        // Left & Right Scribble Eyes
+        [-58, 58].forEach(ox => {
+          for (let pass = 0; pass < 2; pass++) {
+            fxCtx.beginPath();
+            const r = currentMood === "SURPRISED" ? 34 : 26;
+            fxCtx.ellipse(cx + ox + jitter(), cy - 26 + jitter(), r, currentMood === "SLEEPY" ? 4 : r * 1.15, jitter() * 0.03, 0, Math.PI * 2);
+            fxCtx.stroke();
+          }
+          // Pupil scribble
+          if (currentMood !== "SLEEPY") {
+            fxCtx.fillStyle = color;
+            fxCtx.beginPath();
+            fxCtx.arc(cx + ox + jitter(), cy - 26 + jitter(), 8, 0, Math.PI * 2);
+            fxCtx.fill();
+          }
+        });
+
+        // Chaotic Mouth
+        fxCtx.beginPath();
+        if (isSpeaking) {
+          const mouthOpen = 14 + Math.abs(Math.sin(frameTick * 0.45)) * 26;
+          fxCtx.ellipse(cx + jitter(), cy + 48 + jitter(), 36, mouthOpen, 0, 0, Math.PI * 2);
+        } else if (currentMood === "HAPPY") {
+          fxCtx.arc(cx + jitter(), cy + 32 + jitter(), 42, 0.15 * Math.PI, 0.85 * Math.PI);
+        } else if (currentMood === "SURPRISED") {
+          fxCtx.arc(cx + jitter(), cy + 52 + jitter(), 22, 0, Math.PI * 2);
+        } else {
+          fxCtx.moveTo(cx - 38 + jitter(), cy + 48 + jitter());
+          fxCtx.quadraticCurveTo(cx + jitter(), cy + 58 + jitter(), cx + 38 + jitter(), cy + 44 + jitter());
+        }
+        fxCtx.stroke();
+
+      } else if (currentFaceStyle === "waveform") {
+        // Audio-Reactive Cyber Plasma Waveform
+        fxCtx.strokeStyle = color;
+        fxCtx.shadowBlur = 18;
+        fxCtx.shadowColor = color;
+        fxCtx.lineWidth = 5;
+
+        const amp = isSpeaking ? 68 : isListening ? 44 : currentMood === "HAPPY" ? 36 : 12;
+        for (let layer = 0; layer < 2; layer++) {
+          fxCtx.globalAlpha = layer === 0 ? 1 : 0.35;
+          fxCtx.beginPath();
+          for (let x = 20; x <= w - 20; x += 6) {
+            const norm = (x - cx) / (w / 2 - 20);
+            const envelope = Math.cos(norm * (Math.PI / 2)); // Taper at edges
+            const freq = layer === 0 ? 0.055 : 0.09;
+            const speed = layer === 0 ? 0.22 : -0.31;
+            const y = cy + Math.sin(x * freq + frameTick * speed) * amp * envelope;
+            if (x === 20) fxCtx.moveTo(x, y);
+            else fxCtx.lineTo(x, y);
+          }
+          fxCtx.stroke();
+        }
+        fxCtx.globalAlpha = 1;
+        fxCtx.shadowBlur = 0;
+      }
+    }
+    requestAnimationFrame(renderFxCanvas);
+
+    // --- Synthesized R2-D2 / Kid Robot Chirps ---
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playChirp(type = "happy") {
+      try {
+        if (audioCtx.state === "suspended") audioCtx.resume();
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = "sine";
+
+        if (type === "happy") {
+          osc.frequency.setValueAtTime(540, now);
+          osc.frequency.exponentialRampToValueAtTime(1240, now + 0.14);
+        } else if (type === "curious") {
+          osc.frequency.setValueAtTime(450, now);
+          osc.frequency.setValueAtTime(690, now + 0.09);
+        } else if (type === "alarm") {
+          osc.type = "triangle";
+          osc.frequency.setValueAtTime(880, now);
+          osc.frequency.setValueAtTime(1100, now + 0.12);
+          osc.frequency.setValueAtTime(880, now + 0.24);
+        } else {
+          osc.frequency.setValueAtTime(580, now);
+          osc.frequency.exponentialRampToValueAtTime(260, now + 0.22);
+        }
+
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 0.34);
+      } catch (_) {}
+    }
+
+    // --- Voice Dropdown ---
+    function populateVoices() {
+      const voices = window.speechSynthesis.getVoices().filter(v => v.lang.startsWith("en"));
+      const saved = localStorage.getItem(STORAGE_KEYS.VOICE) || "";
+      voiceSelect.innerHTML = '<option value="">Default System Voice</option>';
+      voices.forEach(v => {
+        const opt = document.createElement("option");
+        opt.value = v.name;
+        opt.textContent = `${v.name} (${v.lang})`;
+        if (v.name === saved) opt.selected = true;
+        voiceSelect.appendChild(opt);
+      });
+    }
+    populateVoices();
+    if (window.speechSynthesis.onvoiceschanged !== undefined) {
+      window.speechSynthesis.onvoiceschanged = populateVoices;
+    }
+
+    function speak(text) {
+      if (!("speechSynthesis" in window)) return;
+      window.speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(text);
+      const chosen = localStorage.getItem(STORAGE_KEYS.VOICE);
+      if (chosen) {
+        const match = window.speechSynthesis.getVoices().find(v => v.name === chosen);
+        if (match) utter.voice = match;
+      }
+      utter.pitch = 1.36;
+      utter.rate = 1.12;
+      utter.onstart = () => {
+        isSpeaking = true;
+        eyesWrapper.classList.add("speaking");
+      };
+      utter.onend = () => {
+        isSpeaking = false;
+        eyesWrapper.classList.remove("speaking");
+      };
+      window.speechSynthesis.speak(utter);
+    }
+
+    // --- Moods & Tap Reactions ---
     function setMood(mood) {
+      currentMood = mood;
       eyesWrapper.className = "eyes-wrapper mood-" + mood;
+      if (mood === "HAPPY" || mood === "SURPRISED") {
+        triggerBlobSplatter(mood === "SURPRISED" ? 22 : 14);
+      }
     }
 
     function setStatus(label, state = "") {
@@ -462,34 +803,123 @@ Rules:
       statusDot.className = "dot " + state;
     }
 
-    // Random Blink Loop
-    setInterval(() => {
-      if (Math.random() < 0.7) {
-        eyes.forEach(e => e.classList.add("blink"));
-        setTimeout(() => eyes.forEach(e => e.classList.remove("blink")), 140);
-      }
-    }, 3600);
+    function resetIdleTimer() {
+      clearTimeout(idleTimer);
+      idleTimer = setTimeout(() => {
+        setMood("SLEEPY");
+        subtitle.textContent = "Zzz... poke me if you wanna play!";
+      }, 60000);
+    }
+    resetIdleTimer();
 
-    // Random Idle Pupil Drift
+    setInterval(() => {
+      if (Math.random() < 0.72) {
+        eyes.forEach(e => e.classList.add("blink"));
+        setTimeout(() => eyes.forEach(e => e.classList.remove("blink")), 135);
+      }
+    }, 3400);
+
     setInterval(() => {
       if (!isListening) {
-        const x = (Math.random() - 0.5) * 16;
-        const y = (Math.random() - 0.5) * 12;
+        const x = (Math.random() - 0.5) * 18;
+        const y = (Math.random() - 0.5) * 14;
         pupils.forEach(p => p.style.transform = `translate(${x}px, ${y}px)`);
       }
-    }, 2400);
+    }, 2100);
 
-    // Petting / Tapping the Face
     document.getElementById("face-stage").addEventListener("click", (e) => {
+      resetIdleTimer();
+      playChirp("happy");
+      triggerBlobSplatter(18);
       const rect = eyesWrapper.getBoundingClientRect();
-      const offsetX = Math.max(-14, Math.min(14, (e.clientX - (rect.left + rect.width / 2)) / 8));
-      const offsetY = Math.max(-10, Math.min(10, (e.clientY - (rect.top + rect.height / 2)) / 8));
-      pupils.forEach(p => p.style.transform = `translate(${offsetX}px, ${offsetY}px)`);
+      const ox = Math.max(-14, Math.min(14, (e.clientX - (rect.left + rect.width / 2)) / 8));
+      const oy = Math.max(-10, Math.min(10, (e.clientY - (rect.top + rect.height / 2)) / 8));
+      pupils.forEach(p => p.style.transform = `translate(${ox}px, ${oy}px)`);
       setMood("HAPPY");
-      setTimeout(() => setMood("NEUTRAL"), 1500);
+      setTimeout(() => setMood("NEUTRAL"), 1400);
     });
 
-    // --- Camera Vision Toggle ---
+    // --- Custom Browser Actions ---
+    function startTimer(seconds) {
+      clearInterval(countdownInterval);
+      let remaining = parseInt(seconds, 10);
+      if (isNaN(remaining) || remaining <= 0) return;
+
+      timerPill.style.display = "block";
+      const updateDisplay = () => {
+        const m = String(Math.floor(remaining / 60)).padStart(2, "0");
+        const s = String(remaining % 60).padStart(2, "0");
+        timerPill.textContent = `⏱️ ${m}:${s}`;
+      };
+      updateDisplay();
+
+      countdownInterval = setInterval(() => {
+        remaining--;
+        if (remaining <= 0) {
+          clearInterval(countdownInterval);
+          timerPill.textContent = "⏰ TIME'S UP!";
+          setMood("SURPRISED");
+          playChirp("alarm");
+          speak("Beep beep beep! Hey! Your timer is totally done!");
+          setTimeout(() => { timerPill.style.display = "none"; }, 6000);
+        } else {
+          updateDisplay();
+        }
+      }, 1000);
+    }
+
+    async function fireWebhook(eventName) {
+      const url = localStorage.getItem(STORAGE_KEYS.WEBHOOK);
+      if (!url) {
+        subtitle.textContent += " (Tip: Add your ESP32/Smart Home webhook URL in Settings!)";
+        return;
+      }
+      try {
+        await fetch(url, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ event: eventName, timestamp: Date.now() })
+        });
+      } catch (err) {
+        console.warn("Webhook trigger failed:", err);
+      }
+    }
+
+    triviaBtn.addEventListener("click", () => {
+      resetIdleTimer();
+      playChirp("curious");
+      sendMessageToGemini("Start a super funny, fast-paced kid-friendly trivia question for me to guess!");
+    });
+
+    // --- Location Toggle ---
+    gpsToggle.addEventListener("click", () => {
+      if (userCoords) {
+        userCoords = null;
+        gpsToggle.classList.remove("on");
+        setStatus("Location Off");
+        return;
+      }
+      if (!navigator.geolocation) {
+        alert("Geolocation not supported.");
+        return;
+      }
+      setStatus("Locating...", "active");
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          userCoords = { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
+          gpsToggle.classList.add("on");
+          setStatus("GPS Ready", "active");
+          playChirp("happy");
+        },
+        () => {
+          alert("Location permission denied.");
+          setStatus("Ready");
+        }
+      );
+    });
+
+    // --- Camera Toggle ---
     camToggle.addEventListener("click", async () => {
       if (cameraStream) {
         cameraStream.getTracks().forEach(t => t.stop());
@@ -507,9 +937,10 @@ Rules:
         camPreview.srcObject = cameraStream;
         camPreview.style.display = "block";
         camToggle.classList.add("on");
-        setStatus("Vision Active", "active");
-      } catch (err) {
-        alert("Camera access blocked. Ensure you are using HTTPS.");
+        setStatus("Vision On", "active");
+        playChirp("curious");
+      } catch (_) {
+        alert("Camera blocked. Ensure HTTPS is active.");
       }
     });
 
@@ -517,17 +948,15 @@ Rules:
       if (!cameraStream) return null;
       const ctx = camCanvas.getContext("2d");
       ctx.drawImage(camPreview, 0, 0, camCanvas.width, camCanvas.height);
-      const dataUrl = camCanvas.toDataURL("image/jpeg", 0.65);
-      return dataUrl.split(",")[1];
+      return camCanvas.toDataURL("image/jpeg", 0.65).split(",")[1];
     }
 
-    // --- Speech Recognition (iPhone Safari) ---
+    // --- Speech Recognition ---
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
       recognition = new SpeechRecognition();
       recognition.lang = "en-US";
       recognition.interimResults = false;
-      recognition.maxAlternatives = 1;
 
       recognition.onstart = () => {
         isListening = true;
@@ -543,35 +972,30 @@ Rules:
         sendMessageToGemini(transcript);
       };
 
-      recognition.onerror = (event) => {
-        subtitle.textContent = "Mic error: " + event.error;
+      recognition.onerror = (e) => {
+        subtitle.textContent = "Mic error: " + e.error;
         resetListenUI();
       };
 
-      recognition.onend = () => {
-        resetListenUI();
-      };
+      recognition.onend = resetListenUI;
     }
 
     function resetListenUI() {
       isListening = false;
       talkBtn.classList.remove("listening");
       talkBtn.textContent = "🎙️ Tap to Talk";
-      setStatus(cameraStream ? "Vision Active" : "Ready", cameraStream ? "active" : "");
+      setStatus(cameraStream ? "Vision On" : "Ready", cameraStream ? "active" : "");
     }
 
     talkBtn.addEventListener("click", () => {
-      // Unlock iOS speechSynthesis on user gesture
+      resetIdleTimer();
       window.speechSynthesis.cancel();
+      playChirp("curious");
       if (!recognition) {
-        subtitle.textContent = "Voice recognition unavailable—use text box below.";
+        subtitle.textContent = "Use text box below on this browser.";
         return;
       }
-      if (isListening) {
-        recognition.stop();
-      } else {
-        recognition.start();
-      }
+      isListening ? recognition.stop() : recognition.start();
     });
 
     sendBtn.addEventListener("click", () => {
@@ -580,56 +1004,54 @@ Rules:
       textInput.value = "";
       sendMessageToGemini(val);
     });
+    textInput.addEventListener("keydown", (e) => { if (e.key === "Enter") sendBtn.click(); });
 
-    textInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") sendBtn.click();
-    });
-
-    // --- Text-to-Speech ---
-    function speak(text) {
-      if (!("speechSynthesis" in window)) return;
-      window.speechSynthesis.cancel();
-      const utter = new SpeechSynthesisUtterance(text);
-      utter.rate = 1.06;
-      utter.pitch = 1.12;
-      utter.onstart = () => eyesWrapper.classList.add("speaking");
-      utter.onend = () => eyesWrapper.classList.remove("speaking");
-      window.speechSynthesis.speak(utter);
-    }
-
-    // --- Gemini API & Memory ---
+    // --- Gemini API Call ---
     async function sendMessageToGemini(userText) {
+      resetIdleTimer();
       const apiKey = localStorage.getItem(STORAGE_KEYS.API_KEY);
       if (!apiKey) {
         document.getElementById("settings-modal").classList.add("open");
         return;
       }
 
-      const model = localStorage.getItem(STORAGE_KEYS.MODEL) || "gemini-3.5-flash-lite";
+      const model = localStorage.getItem(STORAGE_KEYS.MODEL) || "gemini-3.5-flash";
       const persona = localStorage.getItem(STORAGE_KEYS.PERSONA) || DEFAULT_PERSONA;
       const longMemory = localStorage.getItem(STORAGE_KEYS.MEMORY) || "";
 
+      const nowString = new Date().toLocaleString("en-US", {
+        weekday: "long", year: "numeric", month: "long", day: "numeric",
+        hour: "numeric", minute: "2-digit", timeZoneName: "short"
+      });
+
       setMood("THINKING");
       setStatus("Thinking...", "active");
+      sourcesBar.innerHTML = "";
 
       const parts = [{ text: userText }];
       const imgBase64 = captureSnapshotBase64();
       if (imgBase64) {
-        parts.unshift({
-          inlineData: { mimeType: "image/jpeg", data: imgBase64 }
-        });
+        parts.unshift({ inlineData: { mimeType: "image/jpeg", data: imgBase64 } });
       }
 
-      // Keep last 12 turns in active context
       const recentHistory = chatHistory.slice(-12);
-      const contents = [
-        ...recentHistory,
-        { role: "user", parts }
-      ];
+      const contents = [...recentHistory, { role: "user", parts }];
 
-      const systemText = longMemory
-        ? `${persona}\n\nWhat you remember about the user:\n${longMemory}`
-        : persona;
+      let systemText = `${persona}\n\nCurrent Date & Time: ${nowString}`;
+      if (longMemory) systemText += `\n\nWhat you remember about the user:\n${longMemory}`;
+
+      const payload = {
+        systemInstruction: { parts: [{ text: systemText }] },
+        contents,
+        tools: [
+          { google_search: {} },
+          { google_maps: {} }
+        ]
+      };
+
+      if (userCoords) {
+        payload.toolConfig = { retrievalConfig: { latLng: userCoords } };
+      }
 
       try {
         const res = await fetch(
@@ -637,39 +1059,61 @@ Rules:
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              systemInstruction: { parts: [{ text: systemText }] },
-              contents
-            })
+            body: JSON.stringify(payload)
           }
         );
 
         const data = await res.json();
         if (!res.ok) throw new Error(data.error?.message || "API Error");
 
-        const rawReply = data.candidates?.[0]?.content?.parts?.[0]?.text || "[NEUTRAL] Beep boop?";
+        const candidate = data.candidates?.[0];
+        let rawReply = candidate?.content?.parts?.map(p => p.text || "").join(" ").trim() || "[NEUTRAL] Uh oh, brain freeze!";
+
         const moodMatch = rawReply.match(/^\[(HAPPY|CURIOUS|THINKING|SARCASTIC|SURPRISED|NEUTRAL)\]\s*/i);
         const mood = moodMatch ? moodMatch[1].toUpperCase() : "NEUTRAL";
-        const cleanReply = rawReply.replace(/^\[[A-Z]+\]\s*/i, "").trim();
+        let cleanReply = rawReply.replace(/^\[[A-Z]+\]\s*/i, "").trim();
+
+        const actionMatch = cleanReply.match(/^\[ACTION:(TIMER|WEBHOOK)\|([^\]]+)\]\s*/i);
+        if (actionMatch) {
+          const actionType = actionMatch[1].toUpperCase();
+          const actionVal = actionMatch[2].trim();
+          cleanReply = cleanReply.replace(/^\[ACTION:[^\]]+\]\s*/i, "").trim();
+          if (actionType === "TIMER") startTimer(actionVal);
+          if (actionType === "WEBHOOK") fireWebhook(actionVal);
+        }
+
+        const chunks = candidate?.groundingMetadata?.groundingChunks || [];
+        const seenUrls = new Set();
+        chunks.forEach(chunk => {
+          const web = chunk.web || chunk.maps;
+          if (web?.uri && !seenUrls.has(web.uri)) {
+            seenUrls.add(web.uri);
+            const a = document.createElement("a");
+            a.className = "source-chip";
+            a.href = web.uri;
+            a.target = "_blank";
+            a.textContent = web.title || "Source";
+            sourcesBar.appendChild(a);
+          }
+        });
 
         setMood(mood);
         subtitle.textContent = cleanReply;
         speak(cleanReply);
 
-        // Save text-only history to localStorage (avoids filling storage with base64 images)
         chatHistory.push({ role: "user", parts: [{ text: userText }] });
         chatHistory.push({ role: "model", parts: [{ text: rawReply }] });
         if (chatHistory.length > 30) chatHistory = chatHistory.slice(-30);
         localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(chatHistory));
 
-        setStatus(cameraStream ? "Vision Active" : "Ready", cameraStream ? "active" : "");
+        setStatus(cameraStream ? "Vision On" : "Ready", cameraStream ? "active" : "");
 
-        // Periodically compress memories every 8 messages
         if (chatHistory.length % 8 === 0) {
           updateLongTermMemory(apiKey, model);
         }
       } catch (err) {
         setMood("SURPRISED");
+        playChirp("sleepy");
         subtitle.textContent = "Error: " + err.message;
         setStatus("Error");
       }
@@ -698,7 +1142,7 @@ Rules:
       } catch (_) {}
     }
 
-    // --- Modal & Backup Controls ---
+    // Modal Controls
     document.getElementById("settings-open").addEventListener("click", () => {
       document.getElementById("settings-modal").classList.add("open");
     });
@@ -707,12 +1151,17 @@ Rules:
     });
     document.getElementById("save-settings").addEventListener("click", () => {
       localStorage.setItem(STORAGE_KEYS.API_KEY, document.getElementById("api-key-input").value.trim());
+      localStorage.setItem(STORAGE_KEYS.FACE_STYLE, faceStyleSelect.value);
       localStorage.setItem(STORAGE_KEYS.MODEL, document.getElementById("model-select").value);
+      localStorage.setItem(STORAGE_KEYS.VOICE, voiceSelect.value);
+      localStorage.setItem(STORAGE_KEYS.WEBHOOK, document.getElementById("webhook-input").value.trim());
       localStorage.setItem(STORAGE_KEYS.PERSONA, document.getElementById("persona-input").value.trim());
       localStorage.setItem(STORAGE_KEYS.MEMORY, document.getElementById("memory-input").value.trim());
+      applyFaceStyle(faceStyleSelect.value);
       document.getElementById("settings-modal").classList.remove("open");
       setMood("HAPPY");
-      subtitle.textContent = "Settings saved!";
+      playChirp("happy");
+      subtitle.textContent = "Awesome! Settings saved!";
     });
     document.getElementById("clear-history").addEventListener("click", () => {
       if (confirm("Clear all conversation history and saved memories?")) {
@@ -720,7 +1169,7 @@ Rules:
         localStorage.removeItem(STORAGE_KEYS.HISTORY);
         localStorage.removeItem(STORAGE_KEYS.MEMORY);
         document.getElementById("memory-input").value = "";
-        subtitle.textContent = "Memory wiped clean.";
+        subtitle.textContent = "Memory wiped clean!";
       }
     });
     document.getElementById("export-memory").addEventListener("click", () => {
