@@ -217,7 +217,7 @@
       to { transform: scaleY(1.08) scaleX(0.96); }
     }
 
-    /* Mode 2, 3, 4: Dynamic Face Canvas */
+    /* Modes 2, 3, 4: Dynamic Face Canvas */
     #fx-canvas {
       display: none;
       width: 100%;
@@ -457,10 +457,11 @@
       <option value="waveform">Cyber Plasma Waveform</option>
     </select>
 
-    <label>Model (Supports Search + Maps Together)</label>
+    <label>Model</label>
     <select id="model-select">
-      <option value="gemini-3.5-flash">gemini-3.5-flash (Recommended)</option>
-      <option value="gemini-3.6-flash">gemini-3.6-flash</option>
+      <option value="gemini-2.5-flash">gemini-2.5-flash (Recommended)</option>
+      <option value="gemini-2.5-flash-lite">gemini-2.5-flash-lite (Fastest)</option>
+      <option value="gemini-2.5-pro">gemini-2.5-pro (Smartest)</option>
     </select>
 
     <label>Robot Voice</label>
@@ -494,7 +495,7 @@ Rules:
 3. If the user asks to trigger lights, hardware, or a webhook command, ALSO include [ACTION:WEBHOOK|<event_name>] right after the mood tag (e.g. [HAPPY] [ACTION:WEBHOOK|party_lights] Boom, turning on the lights!).
 4. Be genuinely funny like a chaotic, dramatic kid: use absurd comparisons, dramatic gasps, sound effects like "BZZT!" or "WHOA!", and cheeky kid logic.
 5. Keep spoken answers punchy (1 to 3 short sentences) with NO markdown, NO asterisks, and NO emojis so text-to-speech sounds awesome.
-6. Use Google Search and Google Maps tools whenever asked about live sports scores, schedules, weather, news, or nearby places.`;
+6. Use Google Search whenever asked about live sports scores, schedules, weather, news, or nearby places.`;
 
     const STORAGE_KEYS = {
       API_KEY: "pip_api_key",
@@ -506,6 +507,8 @@ Rules:
       VOICE: "pip_voice",
       WEBHOOK: "pip_webhook"
     };
+
+    const VALID_MODELS = ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-2.5-pro"];
 
     const MOOD_COLORS = {
       NEUTRAL: "#00e5ff",
@@ -537,6 +540,7 @@ Rules:
     const statusText = document.getElementById("status-text");
     const voiceSelect = document.getElementById("voice-select");
     const faceStyleSelect = document.getElementById("face-style-select");
+    const modelSelect = document.getElementById("model-select");
     const timerPill = document.getElementById("timer-pill");
 
     let chatHistory = JSON.parse(localStorage.getItem(STORAGE_KEYS.HISTORY) || "[]");
@@ -550,10 +554,17 @@ Rules:
     let countdownInterval = null;
     let idleTimer = null;
 
+    // Auto-migrate any outdated saved model name to gemini-2.5-flash
+    let savedModel = localStorage.getItem(STORAGE_KEYS.MODEL);
+    if (!VALID_MODELS.includes(savedModel)) {
+      savedModel = "gemini-2.5-flash";
+      localStorage.setItem(STORAGE_KEYS.MODEL, savedModel);
+    }
+
     // Load Settings
     document.getElementById("api-key-input").value = localStorage.getItem(STORAGE_KEYS.API_KEY) || "";
     faceStyleSelect.value = currentFaceStyle;
-    document.getElementById("model-select").value = localStorage.getItem(STORAGE_KEYS.MODEL) || "gemini-3.5-flash";
+    modelSelect.value = savedModel;
     document.getElementById("persona-input").value = localStorage.getItem(STORAGE_KEYS.PERSONA) || DEFAULT_PERSONA;
     document.getElementById("memory-input").value = localStorage.getItem(STORAGE_KEYS.MEMORY) || "";
     document.getElementById("webhook-input").value = localStorage.getItem(STORAGE_KEYS.WEBHOOK) || "";
@@ -619,12 +630,11 @@ Rules:
         fxCtx.arc(cx, cy, mainRadius, 0, Math.PI * 2);
         fxCtx.fill();
 
-        // Orbiting & Splattering Droplets
         droplets.forEach(d => {
           d.angle += d.speed * (isSpeaking || currentMood === "HAPPY" ? 2.2 : 0.7);
           d.dist += d.vel;
-          d.vel -= d.dist * 0.065; // Elastic spring back toward center
-          d.vel *= 0.86;           // Damping
+          d.vel -= d.dist * 0.065;
+          d.vel *= 0.86;
           const clampedDist = Math.max(0, d.dist);
           const dx = cx + Math.cos(d.angle) * (mainRadius * 0.55 + clampedDist);
           const dy = cy + Math.sin(d.angle) * (mainRadius * 0.55 + clampedDist);
@@ -634,7 +644,6 @@ Rules:
           fxCtx.fill();
         });
 
-        // Cute inner eyes on top of the slime
         const isBlink = (frameTick % 160) < 6;
         fxCtx.fillStyle = "#000000";
         [-24, 24].forEach(offset => {
@@ -648,13 +657,12 @@ Rules:
         });
 
       } else if (currentFaceStyle === "scribble") {
-        // Chaotic Hand-Drawn Flipbook Scribble Face (updates jitter every 4 frames)
+        // Chaotic Hand-Drawn Flipbook Scribble Face
         const jitter = () => (Math.random() - 0.5) * (isSpeaking || currentMood === "HAPPY" ? 11 : 4.5);
         fxCtx.strokeStyle = color;
         fxCtx.lineWidth = 4.5;
         fxCtx.lineCap = "round";
 
-        // Left & Right Scribble Eyes
         [-58, 58].forEach(ox => {
           for (let pass = 0; pass < 2; pass++) {
             fxCtx.beginPath();
@@ -662,7 +670,6 @@ Rules:
             fxCtx.ellipse(cx + ox + jitter(), cy - 26 + jitter(), r, currentMood === "SLEEPY" ? 4 : r * 1.15, jitter() * 0.03, 0, Math.PI * 2);
             fxCtx.stroke();
           }
-          // Pupil scribble
           if (currentMood !== "SLEEPY") {
             fxCtx.fillStyle = color;
             fxCtx.beginPath();
@@ -671,7 +678,6 @@ Rules:
           }
         });
 
-        // Chaotic Mouth
         fxCtx.beginPath();
         if (isSpeaking) {
           const mouthOpen = 14 + Math.abs(Math.sin(frameTick * 0.45)) * 26;
@@ -699,7 +705,7 @@ Rules:
           fxCtx.beginPath();
           for (let x = 20; x <= w - 20; x += 6) {
             const norm = (x - cx) / (w / 2 - 20);
-            const envelope = Math.cos(norm * (Math.PI / 2)); // Taper at edges
+            const envelope = Math.cos(norm * (Math.PI / 2));
             const freq = layer === 0 ? 0.055 : 0.09;
             const speed = layer === 0 ? 0.22 : -0.31;
             const y = cy + Math.sin(x * freq + frameTick * speed) * amp * envelope;
@@ -1015,7 +1021,9 @@ Rules:
         return;
       }
 
-      const model = localStorage.getItem(STORAGE_KEYS.MODEL) || "gemini-3.5-flash";
+      let model = localStorage.getItem(STORAGE_KEYS.MODEL) || "gemini-2.5-flash";
+      if (!VALID_MODELS.includes(model)) model = "gemini-2.5-flash";
+
       const persona = localStorage.getItem(STORAGE_KEYS.PERSONA) || DEFAULT_PERSONA;
       const longMemory = localStorage.getItem(STORAGE_KEYS.MEMORY) || "";
 
@@ -1038,20 +1046,18 @@ Rules:
       const contents = [...recentHistory, { role: "user", parts }];
 
       let systemText = `${persona}\n\nCurrent Date & Time: ${nowString}`;
-      if (longMemory) systemText += `\n\nWhat you remember about the user:\n${longMemory}`;
+      if (userCoords) {
+        systemText += `\nUser GPS Coordinates: ${userCoords.latitude.toFixed(4)}, ${userCoords.longitude.toFixed(4)}`;
+      }
+      if (longMemory) {
+        systemText += `\n\nWhat you remember about the user:\n${longMemory}`;
+      }
 
       const payload = {
         systemInstruction: { parts: [{ text: systemText }] },
         contents,
-        tools: [
-          { google_search: {} },
-          { google_maps: {} }
-        ]
+        tools: [{ google_search: {} }]
       };
-
-      if (userCoords) {
-        payload.toolConfig = { retrievalConfig: { latLng: userCoords } };
-      }
 
       try {
         const res = await fetch(
@@ -1152,7 +1158,7 @@ Rules:
     document.getElementById("save-settings").addEventListener("click", () => {
       localStorage.setItem(STORAGE_KEYS.API_KEY, document.getElementById("api-key-input").value.trim());
       localStorage.setItem(STORAGE_KEYS.FACE_STYLE, faceStyleSelect.value);
-      localStorage.setItem(STORAGE_KEYS.MODEL, document.getElementById("model-select").value);
+      localStorage.setItem(STORAGE_KEYS.MODEL, modelSelect.value);
       localStorage.setItem(STORAGE_KEYS.VOICE, voiceSelect.value);
       localStorage.setItem(STORAGE_KEYS.WEBHOOK, document.getElementById("webhook-input").value.trim());
       localStorage.setItem(STORAGE_KEYS.PERSONA, document.getElementById("persona-input").value.trim());
